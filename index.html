@@ -64,7 +64,7 @@
             <main id="pathwise-form">
                 <!-- Growth -->
                 <section class="card" id="tab-growth">
-                    <h2 style="margin:0 0 6px;">Compound Growth</h2>
+                    <h2 class="mb-6 m-0">Compound Growth</h2>
                     <div class="fine">Starting balance + monthly contribution + time. Assumes monthly compounding.</div>
 
                     <div class="grid">
@@ -110,6 +110,7 @@
                                 <option value="2">Semi-Annually</option>
                                 <option value="1">Annually</option>
                             </select>
+                            <span class="hint">How often interest is added to your balance</span>
                         </label>
                         <label>
                             Timing
@@ -117,11 +118,13 @@
                                 <option value="end" selected>End of Month</option>
                                 <option value="start">Start of Month</option>
                             </select>
+                            <span class="hint">"Start" earns interest on this month's deposit immediately.</span>
                         </label>
                     </div>
 
                     <div class="row" style="margin-top:14px">
-                        <button class="btn primary" type="button" id="g_calc">Calculate</button>
+                        <button class="btn primary" type="button" id="g_calc">Force Calculate</button>
+                        <span class="hint">Calculator automatically updates with every variable change.</span>
                     </div>
 
                     <div class="outputs">
@@ -132,7 +135,7 @@
                         <div class="stat"><b>Avg interest / month</b><span id="g_avg_interest">$0</span></div>
                     </div>
 
-                    <div class="chart-container">
+                    <div class="chart-container h-350">
                         <canvas id="g_chart"></canvas>
                     </div>
 
@@ -175,8 +178,8 @@
                 </section>
 
                 <!-- Debt -->
-                <section class="card" id="tab-debt" style="display:none; margin-top:16px">
-                    <h2 style="margin:0 0 6px;">Debt Payoff</h2>
+                <section class="card hidden mt-16" id="tab-debt">
+                    <h2 class="mb-6 m-0">Debt Payoff</h2>
                     <div class="fine">Balance + APR + monthly payment. Shows payoff time + total interest.</div>
 
                     <div class="grid">
@@ -204,8 +207,9 @@
                         </label>
                     </div>
 
-                    <div class="row" style="margin-top:14px">
-                        <button class="btn primary" type="button" id="d_calc">Calculate</button>
+                    <div class="row mt-14">
+                        <button class="btn primary" type="button" id="d_calc">Force Calculate</button>
+                        <span class="hint">Calculator automatically updates with every variable change.</span>
                     </div>
 
                     <div class="outputs">
@@ -243,8 +247,8 @@
                 </section>
 
                 <!-- Credit Health & Factors -->
-                <section class="card" id="tab-utilization" style="display:none; margin-top:16px">
-                    <h2 style="margin:0 0 6px;">Credit Health & Factors</h2>
+                <section class="card hidden mt-16" id="tab-utilization">
+                    <h2 class="mb-6 m-0">Credit Health & Factors</h2>
                     <div class="fine">Analyze the key factors that determine your credit score and see where you can
                         improve.</div>
 
@@ -287,8 +291,9 @@
                         </label>
                     </div>
 
-                    <div class="row" style="margin-top:14px">
-                        <button class="btn primary" type="button" id="u_calc">Analyze Health</button>
+                    <div class="row mt-14">
+                        <button class="btn primary" type="button" id="u_calc">Force Analyze Health</button>
+                        <span class="hint">Calculator automatically updates with every variable change.</span>
                     </div>
 
                     <div class="outputs">
@@ -338,8 +343,8 @@
                 </section>
 
                 <!-- Loan Payment -->
-                <section class="card" id="tab-loan" style="display:none; margin-top:16px">
-                    <h2 style="margin:0 0 6px;">Loan Payment</h2>
+                <section class="card hidden mt-16" id="tab-loan">
+                    <h2 class="mb-6 m-0">Loan Payment</h2>
                     <div class="fine">Standard installment loan calculator for cars, personal loans, or houses.</div>
 
                     <div class="grid">
@@ -365,8 +370,9 @@
                         </label>
                     </div>
 
-                    <div class="row" style="margin-top:14px">
-                        <button class="btn primary" type="button" id="l_calc">Calculate</button>
+                    <div class="row mt-14">
+                        <button class="btn primary" type="button" id="l_calc">Force Calculate</button>
+                        <span class="hint">Calculator automatically updates with every variable change.</span>
                     </div>
 
                     <div class="outputs">
@@ -397,65 +403,73 @@
                 </section>
 
                 <!-- Savings Goal -->
-                <section class="card" id="tab-goal" style="display:none; margin-top:16px">
-                    <h2 style="margin:0 0 6px;">Savings Goal</h2>
-                    <div class="fine">How long will it take to reach your target balance?</div>
+                <section class="card hidden mt-16" id="tab-goal">
+                    <h2 class="mb-6 m-0">Savings Goal</h2>
+                    <div class="fine">Find out how much you need to save each month to reach your goal.</div>
 
                     <div class="grid">
                         <label>
-                            Target amount ($)
+                            Savings Goal ($)
                             <input id="s_target" type="number" inputmode="decimal" step="0.01"
-                                placeholder="e.g. 10000" />
+                                placeholder="e.g. 50000" />
                         </label>
                         <label>
-                            Starting balance ($)
-                            <input id="s_start" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 1000" />
+                            Initial Investment ($)
+                            <input id="s_start" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 200" />
                         </label>
                         <label>
-                            Monthly contribution ($)
-                            <input id="s_monthly" type="number" inputmode="decimal" step="0.01"
-                                placeholder="e.g. 500" />
+                            Years to Grow
+                            <input id="s_time" type="number" inputmode="numeric" step="1" placeholder="e.g. 6" />
                         </label>
                         <label>
-                            Annual rate (%) (optional)
-                            <input id="s_rate" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 4.5" />
+                            Estimated Interest Rate (%)
+                            <input id="s_rate" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 5" />
+                        </label>
+                        <label>
+                            Compound Frequency
+                            <select id="s_freq">
+                                <option value="1" selected>Annually</option>
+                                <option value="2">Semi-Annually</option>
+                                <option value="4">Quarterly</option>
+                                <option value="12">Monthly</option>
+                            </select>
+                        </label>
+                        <label>
+                            Contribution Timing
+                            <select id="s_timing">
+                                <option value="end" selected>End of Month</option>
+                                <option value="start">Start of Month</option>
+                            </select>
                         </label>
                     </div>
 
-                    <div class="row" style="margin-top:14px">
-                        <button class="btn primary" type="button" id="s_calc">Calculate</button>
+                    <div class="row mt-14">
+                        <button class="btn primary" type="button" id="s_calc">Force Calculate</button>
+                        <span class="hint">Calculator automatically updates with every variable change.</span>
                     </div>
 
-                    <div class="outputs">
-                        <div class="stat"><b>Time to Target</b><span id="s_time">—</span></div>
-                        <div class="stat"><b>Total Contributions</b><span id="s_contrib">$0</span></div>
-                        <div class="stat"><b>Interest Earned</b><span id="s_interest">$0</span></div>
-                    </div>
-
-                    <details class="explain">
-                        <summary>How this is calculated</summary>
-                        <div class="fine">
-                            We loop month-by-month, adding your contribution and interest, until the target balance is
-                            reached or exceeded.
-                            <div class="step">
-                                <b>Assumptions:</b> Monthly compounding. Contributions are made at the end of each
-                                month.
-                            </div>
-                            <div class="step">
-                                <b>Example:</b> Need $1,000, saving $100/mo. Takes 10 months (assuming 0% interest).
-                            </div>
+                    <div id="s_result_container" class="hidden mt-16">
+                        <div class="card mission-card">
+                            <h3>The Results Are In</h3>
+                            <p>If you contribute <b id="s_monthly_needed">$0</b> every
+                                month over the next <b id="s_out_time">0</b> years, you will have <b
+                                    id="s_out_goal">$0</b> in savings.</p>
                         </div>
-                    </details>
-                    <div class="disclaimer">
-                        <b>Disclaimer:</b> Savings projections are hypothetical. Interest rates may change over time,
-                        and
-                        taxes or inflation are not factored into the final balance. Not financial advice.
+                    </div>
+
+                    <div class="chart-container h-350 mt-20">
+                        <canvas id="s_chart"></canvas>
+                    </div>
+
+                    <div class="outputs mt-20">
+                        <div class="stat bg-soft"><b>Total Contributions</b><span id="s_contrib">$0</span></div>
+                        <div class="stat bg-soft"><b>Interest Earned</b><span id="s_interest">$0</span></div>
                     </div>
                 </section>
 
                 <!-- Inflation -->
-                <section class="card" id="tab-inflation" style="display:none; margin-top:16px">
-                    <h2 style="margin:0 0 6px;">Inflation</h2>
+                <section class="card hidden mt-16" id="tab-inflation">
+                    <h2 class="mb-6 m-0">Inflation</h2>
                     <div class="fine">See how the purchasing power of your money changes over time.</div>
 
                     <div class="grid">
@@ -481,8 +495,9 @@
                         </label>
                     </div>
 
-                    <div class="row" style="margin-top:14px">
-                        <button class="btn primary" type="button" id="i_calc">Calculate</button>
+                    <div class="row mt-14">
+                        <button class="btn primary" type="button" id="i_calc">Force Calculate</button>
+                        <span class="hint">Calculator automatically updates with every variable change.</span>
                     </div>
 
                     <div class="outputs">

@@ -125,7 +125,7 @@
 
     // ---------- Tabs ----------
     const BLURBS = {
-        growth: "Compound interest is interest earned on top of interest. Unlike simple interest, which only calculates on the principal, compounding accelerates growth because your earnings start earning for you. It's often called the 'eighth wonder of the world'.",
+        growth: "Compound interest is 'interest on interest.' Start of Month means you invest before the bank calculates growth, maximizing your earnings immediately. End of Month means you invest after, so that specific payment starts earning next month. Over 20 years, that 'head start' can add thousands to your total.",
         debt: "Paying off debt isn't just about the balance; it's about the interest. By paying more than the minimum, you directly reduce the principal that interest is calculated on, saving months or years of payments.",
         utilization: "Your credit score is a 'risk' grade. While utilization is a huge 30%, payment history is even bigger (35%). Keeping balances low and accounts old shows lenders you are reliable over the long term.",
         loan: "Amortization is the process of paying off debt in regular installments. Early on, most of your payment goes to interest. As the balance drops, more goes toward the principal. This is why car and home loans start slow!",
@@ -156,7 +156,8 @@
         }
     };
 
-    let growthChart = null;
+    // Global chart instances
+    let sChartInstance = null;
 
     const calcGrowth = () => {
         const start = Math.max(0, parseNum($("#g_start")?.value));
@@ -176,30 +177,44 @@
             const hist = [start];
             const meta = { balance: start, interest: 0, contributed: 0 };
 
+            let compoundingBase = start;
+            const monthsPerPeriod = 12 / compoundFreq;
+
             for (let m = 0; m < months; m++) {
+                // Determine what balance earns interest this month
+                // Industry standard: Start of month includes current deposit in that month's interest share
+                const earningBase = (timing === "start") ? (bal + monthly) : bal;
+
                 if (timing === "start") {
                     bal += monthly;
                     meta.contributed += monthly;
+                    // For annual frequencies, we include this boundary deposit in the base
+                    if (m % monthsPerPeriod === 0) compoundingBase = bal;
                 }
 
-                let monthlyRate;
                 if (compoundFreq >= 12) {
-                    monthlyRate = Math.pow(1 + r / compoundFreq, compoundFreq / 12) - 1;
-                    const intThisMonth = bal * monthlyRate;
-                    bal += intThisMonth;
-                    meta.interest += intThisMonth;
-                } else {
-                    const monthsPerCompound = 12 / compoundFreq;
-                    if ((m + 1) % monthsPerCompound === 0) {
-                        const intThisPeriod = bal * (r / compoundFreq);
-                        bal += intThisPeriod;
-                        meta.interest += intThisPeriod;
-                    }
+                    // Monthly/Daily
+                    const effMonthly = Math.pow(1 + r / compoundFreq, compoundFreq / 12) - 1;
+                    const intNow = earningBase * effMonthly;
+                    bal += intNow;
+                    meta.interest += intNow;
+                } else if ((m + 1) % monthsPerPeriod === 0 || m === months - 1) {
+                    // The 'earningBase' logic applies strictly to sub-monthly too 
+                    // if we define it as 'Beginning of Period balance'
+                    const intNow = compoundingBase * (r / compoundFreq);
+                    bal += intNow;
+                    meta.interest += intNow;
+                    compoundingBase = bal;
                 }
 
                 if (timing === "end") {
                     bal += monthly;
                     meta.contributed += monthly;
+                }
+
+                // Update boundary base for next cycle
+                if (compoundFreq < 12 && (m + 1) % monthsPerPeriod === 0) {
+                    compoundingBase = bal;
                 }
 
                 if (months <= 24 || (m + 1) % 12 === 0 || m === months - 1) {
@@ -211,6 +226,7 @@
         };
 
         const base = runScenario(ratePct);
+        const zero = runScenario(0);
         const high = variancePct > 0 ? runScenario(ratePct + variancePct) : null;
         const low = variancePct > 0 ? runScenario(ratePct - variancePct) : null;
 
@@ -228,7 +244,7 @@
         if ($("#g_avg_interest")) $("#g_avg_interest").textContent = months > 0 ? fmtMoney(base.meta.interest / months) : "$0";
 
         updateGrowthTable(labels, base, high, low, ratePct, variancePct);
-        renderGrowthChart(labels, base.hist, high?.hist, low?.hist, ratePct, variancePct);
+        renderGrowthChart(labels, base.hist, high?.hist, low?.hist, ratePct, variancePct, zero.hist);
     };
 
     const updateGrowthTable = (labels, base, high, low, rate, varPct) => {
@@ -251,7 +267,7 @@
         tbody.innerHTML = bodyHtml;
     };
 
-    const renderGrowthChart = (labels, baseHist, highHist, lowHist, rate, varPct) => {
+    const renderGrowthChart = (labels, baseHist, highHist, lowHist, rate, varPct, zeroHist) => {
         const canvas = $("#g_chart");
         if (!canvas || typeof Chart === "undefined") return;
 
@@ -260,6 +276,17 @@
         if (existing) existing.destroy();
 
         const datasets = [];
+        if (zeroHist) {
+            datasets.push({
+                label: `0% Interest`,
+                data: zeroHist,
+                borderColor: '#64748b',
+                borderDash: [5, 5],
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.1
+            });
+        }
         if (highHist) {
             datasets.push({
                 label: `High (${(rate + varPct).toFixed(1)}%)`,
@@ -331,7 +358,7 @@
 
                                 try {
                                     const datasets = context.chart.data.datasets;
-                                    const baseDs = datasets.find(d => d.label && d.label.indexOf('Base') !== -1);
+                                    const baseDs = datasets?.find(d => d.label?.includes('Base'));
                                     if (baseDs && context.dataset !== baseDs) {
                                         const baseVal = baseDs.data[context.dataIndex];
                                         if (baseVal !== undefined) {
@@ -354,11 +381,13 @@
                         grid: { color: 'rgba(255, 255, 255, 0.05)' },
                         ticks: {
                             color: '#94a3b8',
+                            autoSkip: true,
+                            maxRotation: 0,
                             callback: function (value) {
-                                if (value >= 1000) {
-                                    return '$' + (value / 1000).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'k';
+                                if (Math.abs(value) >= 1000) {
+                                    return '$' + (value / 1000).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + 'k';
                                 }
-                                return '$' + value;
+                                return '$' + value.toLocaleString();
                             }
                         }
                     },
@@ -497,34 +526,188 @@
     const calcGoal = () => {
         const target = parseNum($("#s_target")?.value);
         const start = parseNum($("#s_start")?.value);
-        const monthly = parseNum($("#s_monthly")?.value);
-        const rate = parseNum($("#s_rate")?.value);
-        const r = (rate / 100) / 12;
+        const years = parseNum($("#s_time")?.value);
+        const ratePct = parseNum($("#s_rate")?.value);
+        const freq = parseNum($("#s_freq")?.value) || 1;
+        const timing = $("#s_timing")?.value || "end";
 
+        if (target <= 0 || years <= 0) return;
+
+        const months = years * 12;
+        const r = ratePct / 100;
+
+        let monthlyNeeded = 0;
         if (target <= start) {
-            if ($("#s_time")) $("#s_time").textContent = "Reached!";
-            return;
-        }
-        if (monthly <= 0 && rate <= 0) {
-            if ($("#s_time")) $("#s_time").textContent = "Never";
-            return;
+            monthlyNeeded = 0;
+        } else if (r === 0) {
+            monthlyNeeded = (target - start) / months;
+        } else {
+            // Precise simulation to find required payment
+            let low = 0, high = target;
+            for (let i = 0; i < 35; i++) {
+                let mid = (low + high) / 2;
+                let testBal = start;
+                let cBase = start;
+                const mPerComp = 12 / freq;
+
+                for (let m = 0; m < months; m++) {
+                    const earnsThisMonth = (timing === "start") ? (testBal + mid) : testBal;
+
+                    if (timing === "start") {
+                        testBal += mid;
+                        if (m % mPerComp === 0) cBase = testBal;
+                    }
+
+                    if ((m + 1) % mPerComp === 0 || m === months - 1) {
+                        const intNow = (freq >= 12)
+                            ? (earnsThisMonth * (Math.pow(1 + r / freq, freq / 12) - 1))
+                            : (cBase * (r / freq));
+                        testBal += intNow;
+                    }
+
+                    if (timing === "end") {
+                        testBal += mid;
+                    }
+
+                    if ((m + 1) % mPerComp === 0) {
+                        cBase = testBal;
+                    }
+                }
+                if (testBal < target) low = mid;
+                else high = mid;
+            }
+            monthlyNeeded = high;
         }
 
-        let balance = start, months = 0, interest = 0, contrib = 0;
-        const MAX = 1200;
-        while (balance < target && months < MAX) {
-            const intThisMonth = balance * r;
-            interest += intThisMonth;
-            balance += intThisMonth + monthly;
-            contrib += monthly;
-            months++;
+        $("#s_monthly_needed").textContent = fmtMoney(monthlyNeeded);
+        $("#s_out_time").textContent = years;
+        $("#s_out_goal").textContent = fmtMoney(target);
+        $("#s_result_container").style.display = "block";
+
+        // Final simulation for chart
+        let bal = start;
+        let cBase = start;
+        let contributed = 0;
+        let interest = 0;
+        const histTotal = [start];
+        const histContrib = [0];
+        const histBase = [start];
+        const labels = ["Start"];
+        const mPerComp = 12 / freq;
+
+        for (let m = 0; m < months; m++) {
+            const earnsThisMonth = (timing === "start") ? (bal + monthlyNeeded) : bal;
+
+            if (timing === "start") {
+                bal += monthlyNeeded;
+                contributed += monthlyNeeded;
+                if (m % mPerComp === 0) cBase = bal;
+            }
+
+            if ((m + 1) % mPerComp === 0 || m === months - 1) {
+                const i = (freq >= 12)
+                    ? (earnsThisMonth * (Math.pow(1 + r / freq, freq / 12) - 1))
+                    : (cBase * (r / freq));
+                bal += i;
+                interest += i;
+            }
+
+            if (timing === "end") {
+                bal += monthlyNeeded;
+                contributed += monthlyNeeded;
+            }
+
+            if ((m + 1) % mPerComp === 0) {
+                cBase = bal;
+            }
+
+            if ((m + 1) % 12 === 0 || m === months - 1) {
+                histTotal.push(bal);
+                histContrib.push(contributed);
+                // Initial investment line (no additions)
+                const bVal = start * Math.pow(1 + r / freq, Math.ceil((m + 1) * freq / 12));
+                histBase.push(bVal);
+                labels.push(`Yr ${Math.floor((m + 1) / 12)}`);
+            }
         }
 
-        const yrs = Math.floor(months / 12), rem = months % 12;
-        const timeStr = yrs > 0 ? `${yrs}y ${rem}m (${months}m)` : `${months} months`;
-        if ($("#s_time")) $("#s_time").textContent = months >= MAX ? "100+ years" : timeStr;
-        if ($("#s_contrib")) $("#s_contrib").textContent = fmtMoney(contrib);
-        if ($("#s_interest")) $("#s_interest").textContent = fmtMoney(interest);
+        $("#s_contrib").textContent = fmtMoney(contributed);
+        $("#s_interest").textContent = fmtMoney(interest);
+
+        renderGoalChart(labels, histTotal, histContrib, histBase);
+    };
+
+    const renderGoalChart = (labels, total, contrib, base) => {
+        const ctx = $("#s_chart")?.getContext("2d");
+        if (!ctx) return;
+        if (sChartInstance) sChartInstance.destroy();
+
+        sChartInstance = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: "Total Savings",
+                        data: total,
+                        borderColor: "#10b981",
+                        backgroundColor: "rgba(16,185,129,0.1)",
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: "Monthly Additions",
+                        data: contrib,
+                        borderColor: "#f43f5e",
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        tension: 0.3
+                    },
+                    {
+                        label: "Initial Investment",
+                        data: base,
+                        borderColor: "#3b82f6",
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        borderDash: [5, 5]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: "bottom", labels: { color: "#94a3b8" } },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: (ctx) => `${ctx.dataset.label}: ${fmtMoney(ctx.raw)}`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            color: "#94a3b8",
+                            callback: (v) => {
+                                if (Math.abs(v) >= 1000) {
+                                    return '$' + (v / 1000).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + 'k';
+                                }
+                                return "$" + v.toLocaleString();
+                            }
+                        },
+                        grid: { color: "rgba(255,255,255,0.05)" }
+                    },
+                    x: {
+                        ticks: { color: "#94a3b8" },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
     };
 
     const calcInflation = () => {
@@ -545,11 +728,28 @@
     };
 
     const clearAll = () => {
-        if (!confirm("Are you sure you want to delete all stored data? This will clear all inputs and stored preferences.")) return;
-        sessionStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(PREF_KEY);
-        location.reload();
+        if (!confirm("Are you sure? This will delete all saved data and reset all tools to zero.")) return;
+
+        // 1. Wipe all possible storage
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // 2. Manually clear UI elements before reload
+        const inputs = document.querySelectorAll("input, select, textarea");
+        inputs.forEach(el => {
+            if (el instanceof HTMLInputElement) {
+                if (el.type === "checkbox" || el.type === "radio") el.checked = false;
+                else el.value = "";
+            } else if (el instanceof HTMLSelectElement) {
+                el.selectedIndex = 0;
+            }
+        });
+
+        // 3. Clear output labels
+        $$(".outputs span").forEach(s => s.textContent = s.id.includes("rate") || s.id.includes("loss") || s.id.includes("zone") || s.id.includes("time") || s.id.includes("goal") ? "—" : "$0");
+
+        // 4. Force a hard, cache-busting reload
+        window.location.href = window.location.origin + window.location.pathname + "?reset=" + Date.now();
     };
 
     const calcAll = () => {
@@ -577,11 +777,17 @@
         if (root) {
             root.addEventListener("input", (e) => {
                 const t = e.target;
-                if (t && (t.matches?.("input, select, textarea"))) saveNow();
+                if (t && (t.matches?.("input, select, textarea"))) {
+                    saveNow();
+                    calcAll(); // Reactive calculation
+                }
             });
             root.addEventListener("change", (e) => {
                 const t = e.target;
-                if (t && (t.matches?.("input, select, textarea"))) saveNow();
+                if (t && (t.matches?.("input, select, textarea"))) {
+                    saveNow();
+                    calcAll(); // Reactive calculation
+                }
             });
         }
 
