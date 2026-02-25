@@ -17,6 +17,7 @@
  *
  * Debt inputs:   #d_balance, #d_apr, #d_payment, #d_extra
  * Debt outputs:  #d_time, #d_total_paid, #d_total_interest, #d_warn
+ * Created by Raptor8600
  */
 
 (() => {
