@@ -167,18 +167,41 @@
         const unit = $("#g_unit")?.value || "years";
 
         const months = unit === "years" ? Math.round(timeInput * 12) : Math.round(timeInput);
+        const compoundFreq = parseNum($("#g_freq")?.value) || 12;
+        const timing = $("#g_timing")?.value || "end";
 
         const runScenario = (pct) => {
-            const r = (pct / 100) / 12;
+            const r = pct / 100;
             let bal = start;
             const hist = [start];
             const meta = { balance: start, interest: 0, contributed: 0 };
+
             for (let m = 0; m < months; m++) {
-                const interest = bal * r;
-                bal += interest;
-                meta.interest += interest;
-                bal += monthly;
-                meta.contributed += monthly;
+                if (timing === "start") {
+                    bal += monthly;
+                    meta.contributed += monthly;
+                }
+
+                let monthlyRate;
+                if (compoundFreq >= 12) {
+                    monthlyRate = Math.pow(1 + r / compoundFreq, compoundFreq / 12) - 1;
+                    const intThisMonth = bal * monthlyRate;
+                    bal += intThisMonth;
+                    meta.interest += intThisMonth;
+                } else {
+                    const monthsPerCompound = 12 / compoundFreq;
+                    if ((m + 1) % monthsPerCompound === 0) {
+                        const intThisPeriod = bal * (r / compoundFreq);
+                        bal += intThisPeriod;
+                        meta.interest += intThisPeriod;
+                    }
+                }
+
+                if (timing === "end") {
+                    bal += monthly;
+                    meta.contributed += monthly;
+                }
+
                 if (months <= 24 || (m + 1) % 12 === 0 || m === months - 1) {
                     hist.push(bal);
                 }
@@ -331,7 +354,12 @@
                         grid: { color: 'rgba(255, 255, 255, 0.05)' },
                         ticks: {
                             color: '#94a3b8',
-                            callback: value => '$' + (value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value)
+                            callback: function (value) {
+                                if (value >= 1000) {
+                                    return '$' + (value / 1000).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'k';
+                                }
+                                return '$' + value;
+                            }
                         }
                     },
                     x: {
