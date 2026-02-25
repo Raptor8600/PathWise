@@ -1,0 +1,518 @@
+<!-- =========================
+ Pathwise (single-file starter)
+ Copy/paste into a NEW .html file and open it.
+ Works on mobile + desktop.
+ No server. Remembers inputs in-tab, optional device save.
+ Created by Raptor8600
+========================= -->
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Pathwise</title>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+    <header>
+        <div class="head">
+            <div>
+                <h1>Pathwise</h1>
+                <div class="sub">Personal Finance Dumbed Down · Easy Math Explained · No Data Is Saved</div>
+            </div>
+
+            <div class="row">
+                <label class="toggle" title="Auto-save inputs to this browser on your device.">
+                    <input type="checkbox" id="rememberDevice" />
+                    Remember on this device
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <div class="wrap">
+        <div class="card mission-card">
+            <p>PathWise was created to centralize and simplify personal finance tools so that you can understand your
+                financial trajectory better without all the confusing terminology (help make you WISE about your PATH).
+                Our mission is to demystify
+                complex financial concepts by providing clear calculations accompanied by intuitive, plain-language
+                explanations, empowering you to make informed decisions with confidence.</p>
+        </div>
+
+        <div class="tabs">
+            <button class="btn active" type="button" data-tab="growth" id="tabBtnGrowth">Compound Growth</button>
+            <button class="btn" type="button" data-tab="debt" id="tabBtnDebt">Debt Payoff</button>
+            <button class="btn" type="button" data-tab="utilization" id="tabBtnUtilization">Credit Health</button>
+            <button class="btn" type="button" data-tab="loan" id="tabBtnLoan">Loan Payment</button>
+            <button class="btn" type="button" data-tab="goal" id="tabBtnGoal">Savings Goal</button>
+            <button class="btn" type="button" data-tab="inflation" id="tabBtnInflation">Inflation</button>
+        </div>
+
+        <div class="main-layout">
+            <aside class="sidebar">
+                <div class="card learn-card">
+                    <h3>Financial Insights</h3>
+                    <p id="learn-text">Select a tool to see how it impact your financial future.</p>
+                </div>
+            </aside>
+
+            <main id="pathwise-form">
+                <!-- Growth -->
+                <section class="card" id="tab-growth">
+                    <h2 style="margin:0 0 6px;">Compound Growth</h2>
+                    <div class="fine">Starting balance + monthly contribution + time. Assumes monthly compounding.</div>
+
+                    <div class="grid">
+                        <label>
+                            Starting balance ($)
+                            <input id="g_start" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 2500" />
+                            <span class="hint">What you already have</span>
+                        </label>
+                        <label>
+                            Monthly contribution ($)
+                            <input id="g_monthly" type="number" inputmode="decimal" step="0.01"
+                                placeholder="e.g. 200" />
+                            <span class="hint">Added each month</span>
+                        </label>
+                        <label>
+                            Annual interest rate (%)
+                            <input id="g_rate" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 7" />
+                            <span class="hint">Example: 7 means 7%/year</span>
+                        </label>
+                        <label>
+                            Interest rate variance range (%)
+                            <input id="g_variance" type="number" inputmode="decimal" step="0.1" placeholder="e.g. 2"
+                                value="0" />
+                            <span class="hint">Calculates +/- this range</span>
+                        </label>
+                        <label>
+                            Time
+                            <input id="g_time" type="number" inputmode="numeric" step="1" placeholder="e.g. 20" />
+                        </label>
+                        <label>
+                            Unit
+                            <select id="g_unit">
+                                <option value="years">Years</option>
+                                <option value="months">Months</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="row" style="margin-top:14px">
+                        <button class="btn primary" type="button" id="g_calc">Calculate</button>
+                    </div>
+
+                    <div class="outputs">
+                        <div class="stat"><b>Final balance</b><span id="g_final">$0</span></div>
+                        <div class="stat"><b>Total contributed</b><span id="g_contrib">$0</span></div>
+                        <div class="stat"><b>Total interest gained</b><span id="g_interest">$0</span></div>
+                        <div class="stat"><b>Duration</b><span id="g_out_time">0</span></div>
+                        <div class="stat"><b>Avg interest / month</b><span id="g_avg_interest">$0</span></div>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="g_chart"></canvas>
+                    </div>
+
+                    <div class="row" style="margin-top:20px; justify-content:center;">
+                        <button class="btn ghost" type="button" id="g_toggle_table">Show Table</button>
+                    </div>
+
+                    <div id="g_table_container" style="display:none; margin-top:16px; overflow-x:auto;">
+                        <table class="data-table" id="g_table">
+                            <thead>
+                                <tr id="g_table_head">
+                                    <!-- Dynamic -->
+                                </tr>
+                            </thead>
+                            <tbody id="g_table_body">
+                                <!-- Dynamic -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <details class="explain">
+                        <summary>How this is calculated</summary>
+                        <div class="fine">
+                            This uses the compound interest formula with monthly contributions. Each month, we calculate
+                            interest on the current balance, add it, and then add your monthly contribution.
+                            <div class="step">
+                                <b>Formula:</b> A = P(1 + r/n)^(nt) + PMT × [((1 + r/n)^(nt) - 1) / (r/n)]
+                            </div>
+                            <div class="step">
+                                <b>Example:</b> $1,000 at 12% for 1 month: $10 interest. Balance becomes $1,010. If you
+                                add
+                                $100, final is $1,110.
+                            </div>
+                        </div>
+                    </details>
+                    <div class="disclaimer">
+                        <b>Disclaimer:</b> This calculator is for informational purposes only. Results are hypothetical
+                        estimates based on your inputs and do not guarantee future performance. Not financial advice.
+                    </div>
+                </section>
+
+                <!-- Debt -->
+                <section class="card" id="tab-debt" style="display:none; margin-top:16px">
+                    <h2 style="margin:0 0 6px;">Debt Payoff</h2>
+                    <div class="fine">Balance + APR + monthly payment. Shows payoff time + total interest.</div>
+
+                    <div class="grid">
+                        <label>
+                            Current balance ($)
+                            <input id="d_balance" type="number" inputmode="decimal" step="0.01"
+                                placeholder="e.g. 3500" />
+                            <span class="hint">Amount you owe right now</span>
+                        </label>
+                        <label>
+                            APR (%)
+                            <input id="d_apr" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 24.99" />
+                            <span class="hint">Annual percentage rate</span>
+                        </label>
+                        <label>
+                            Monthly payment ($)
+                            <input id="d_payment" type="number" inputmode="decimal" step="0.01"
+                                placeholder="e.g. 150" />
+                            <span class="hint">What you pay each month</span>
+                        </label>
+                        <label>
+                            Extra payment ($) (optional)
+                            <input id="d_extra" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 25" />
+                            <span class="hint">Extra on top of the payment</span>
+                        </label>
+                    </div>
+
+                    <div class="row" style="margin-top:14px">
+                        <button class="btn primary" type="button" id="d_calc">Calculate</button>
+                    </div>
+
+                    <div class="outputs">
+                        <div class="stat"><b>Payoff time</b><span id="d_time">—</span></div>
+                        <div class="stat"><b>Total paid</b><span id="d_total_paid">$0</span></div>
+                        <div class="stat"><b>Total interest</b><span id="d_total_interest">$0</span></div>
+                        <div class="stat"><b>Status</b><span id="d_warn">—</span></div>
+                    </div>
+
+                    <div class="fine warn" id="d_warn_note" style="display:none;margin-top:10px">
+                        If your payment doesn't cover at least the first month's interest, the balance won't go down.
+                    </div>
+
+                    <details class="explain">
+                        <summary>How this is calculated</summary>
+                        <div class="fine">
+                            We simulate the loan month-by-month. Interest is calculated on the remaining balance each
+                            month,
+                            then your payment is applied to the interest first, then the principal.
+                            <div class="step">
+                                <b>Assumptions:</b> Interest is calculated monthly based on the annual APR.
+                            </div>
+                            <div class="step">
+                                <b>Example:</b> $5,000 balance at 24% APR = 2% per month. First month interest is $100.
+                                If
+                                you pay $150, balance drops by $50.
+                            </div>
+                        </div>
+                    </details>
+                    <div class="disclaimer">
+                        <b>Disclaimer:</b> Loan payoff simulations are estimates. Actual interest accrual and terms may
+                        vary
+                        by lender. Not financial advice.
+                    </div>
+                </section>
+
+                <!-- Credit Health & Factors -->
+                <section class="card" id="tab-utilization" style="display:none; margin-top:16px">
+                    <h2 style="margin:0 0 6px;">Credit Health & Factors</h2>
+                    <div class="fine">Analyze the key factors that determine your credit score and see where you can
+                        improve.</div>
+
+                    <div class="grid">
+                        <label>
+                            Total balance owed ($)
+                            <input id="u_balance" type="number" inputmode="decimal" step="0.01"
+                                placeholder="e.g. 1500" />
+                            <span class="hint">Sum of all credit card balances</span>
+                        </label>
+                        <label>
+                            Total credit limit ($)
+                            <input id="u_limit" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 5000" />
+                            <span class="hint">Sum of all credit limits</span>
+                        </label>
+                        <label>
+                            Age of oldest account (years)
+                            <input id="u_age" type="number" inputmode="numeric" step="1" placeholder="e.g. 7" />
+                            <span class="hint">Length of credit history</span>
+                        </label>
+                        <label>
+                            Hard checks (last 12 months)
+                            <input id="u_inquiries" type="number" inputmode="numeric" step="1" placeholder="e.g. 1" />
+                            <span class="hint">Hard inquiries / new applications</span>
+                        </label>
+                        <label>
+                            Late payments?
+                            <select id="u_late">
+                                <option value="0">Never</option>
+                                <option value="1">1 late payment</option>
+                                <option value="2">2 late payments</option>
+                                <option value="3">3+ late payments</option>
+                            </select>
+                            <span class="hint">Past-due history</span>
+                        </label>
+                        <label>
+                            Total accounts
+                            <input id="u_total_acc" type="number" inputmode="numeric" step="1" placeholder="e.g. 5" />
+                            <span class="hint">Credit mix & diversity</span>
+                        </label>
+                    </div>
+
+                    <div class="row" style="margin-top:14px">
+                        <button class="btn primary" type="button" id="u_calc">Analyze Health</button>
+                    </div>
+
+                    <div class="outputs">
+                        <div class="stat"><b>Utilization</b><span id="u_rate">0%</span></div>
+                        <div class="stat"><b>Health Grade</b><span id="u_zone">—</span></div>
+                        <div class="stat"><b>Top Advice</b><span id="u_goal">Enter data to see</span></div>
+                    </div>
+
+                    <details class="explain">
+                        <summary>How this tool estimates impact</summary>
+                        <div class="fine">
+                            While exact credit scores are secret (FICO/Vantage), we use the weighted industry averages
+                            to
+                            estimate your credit health.
+
+                            <div class="step">
+                                <span class="impact high">High Impact</span> <b>Payment History (35%):</b> Missing even
+                                one
+                                payment can drop a score by 50-100 points.
+                            </div>
+                            <div class="step">
+                                <span class="impact high">High Impact</span> <b>Amounts Owed (30%):</b> Includes
+                                utilization. Keep balances under 10% for the best scores.
+                            </div>
+                            <div class="step">
+                                <span class="impact med">Medium Impact</span> <b>Length of History (15%):</b> Older
+                                accounts
+                                are better. Don't close your oldest card!
+                            </div>
+                            <div class="step">
+                                <span class="impact low">Low Impact</span> <b>Credit Mix (10%):</b> A mix of cards, car
+                                loans, or mortgages proves you can handle different debt.
+                            </div>
+                            <div class="step">
+                                <span class="impact low">Low Impact</span> <b>New Credit (10%):</b> Hard checks stay for
+                                12-24 months. Applying for many cards at once is a red flag.
+                            </div>
+                        </div>
+                    </details>
+                    <div class="disclaimer">
+                        <b>Disclaimer:</b> Credit health scores are estimates based on weighted industry averages. This
+                        is
+                        not an official credit determinant. Actual scores (FICO/Vantage) are determined by credit
+                        bureaus.
+                        Not financial advice.
+                    </div>
+                </section>
+
+                <!-- Loan Payment -->
+                <section class="card" id="tab-loan" style="display:none; margin-top:16px">
+                    <h2 style="margin:0 0 6px;">Loan Payment</h2>
+                    <div class="fine">Standard installment loan calculator for cars, personal loans, or houses.</div>
+
+                    <div class="grid">
+                        <label>
+                            Loan amount ($)
+                            <input id="l_amount" type="number" inputmode="decimal" step="0.01"
+                                placeholder="e.g. 25000" />
+                        </label>
+                        <label>
+                            APR (%)
+                            <input id="l_apr" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 5.5" />
+                        </label>
+                        <label>
+                            Term
+                            <input id="l_term" type="number" inputmode="numeric" step="1" placeholder="e.g. 5" />
+                        </label>
+                        <label>
+                            Unit
+                            <select id="l_unit">
+                                <option value="years">Years</option>
+                                <option value="months">Months</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="row" style="margin-top:14px">
+                        <button class="btn primary" type="button" id="l_calc">Calculate</button>
+                    </div>
+
+                    <div class="outputs">
+                        <div class="stat"><b>Monthly Payment</b><span id="l_monthly">$0</span></div>
+                        <div class="stat"><b>Total Interest</b><span id="l_total_interest">$0</span></div>
+                        <div class="stat"><b>Total Cost</b><span id="l_total_cost">$0</span></div>
+                    </div>
+
+                    <details class="explain">
+                        <summary>How this is calculated</summary>
+                        <div class="fine">
+                            Uses the standard amortization formula to find a fixed monthly payment that results in a $0
+                            balance at the end of the term.
+                            <div class="step">
+                                <b>Formula:</b> PMT = [P × r(1+r)^n] / [(1+r)^n - 1]
+                            </div>
+                            <div class="step">
+                                <b>Tip:</b> Payments are "interest-heavy" early on because interest is charged on the
+                                initial large principal.
+                            </div>
+                        </div>
+                    </details>
+                    <div class="disclaimer">
+                        <b>Disclaimer:</b> Amortization schedules are estimates. Actual monthly payments may include
+                        taxes,
+                        insurance, or other fees not calculated here. Not financial advice.
+                    </div>
+                </section>
+
+                <!-- Savings Goal -->
+                <section class="card" id="tab-goal" style="display:none; margin-top:16px">
+                    <h2 style="margin:0 0 6px;">Savings Goal</h2>
+                    <div class="fine">How long will it take to reach your target balance?</div>
+
+                    <div class="grid">
+                        <label>
+                            Target amount ($)
+                            <input id="s_target" type="number" inputmode="decimal" step="0.01"
+                                placeholder="e.g. 10000" />
+                        </label>
+                        <label>
+                            Starting balance ($)
+                            <input id="s_start" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 1000" />
+                        </label>
+                        <label>
+                            Monthly contribution ($)
+                            <input id="s_monthly" type="number" inputmode="decimal" step="0.01"
+                                placeholder="e.g. 500" />
+                        </label>
+                        <label>
+                            Annual rate (%) (optional)
+                            <input id="s_rate" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 4.5" />
+                        </label>
+                    </div>
+
+                    <div class="row" style="margin-top:14px">
+                        <button class="btn primary" type="button" id="s_calc">Calculate</button>
+                    </div>
+
+                    <div class="outputs">
+                        <div class="stat"><b>Time to Target</b><span id="s_time">—</span></div>
+                        <div class="stat"><b>Total Contributions</b><span id="s_contrib">$0</span></div>
+                        <div class="stat"><b>Interest Earned</b><span id="s_interest">$0</span></div>
+                    </div>
+
+                    <details class="explain">
+                        <summary>How this is calculated</summary>
+                        <div class="fine">
+                            We loop month-by-month, adding your contribution and interest, until the target balance is
+                            reached or exceeded.
+                            <div class="step">
+                                <b>Assumptions:</b> Monthly compounding. Contributions are made at the end of each
+                                month.
+                            </div>
+                            <div class="step">
+                                <b>Example:</b> Need $1,000, saving $100/mo. Takes 10 months (assuming 0% interest).
+                            </div>
+                        </div>
+                    </details>
+                    <div class="disclaimer">
+                        <b>Disclaimer:</b> Savings projections are hypothetical. Interest rates may change over time,
+                        and
+                        taxes or inflation are not factored into the final balance. Not financial advice.
+                    </div>
+                </section>
+
+                <!-- Inflation -->
+                <section class="card" id="tab-inflation" style="display:none; margin-top:16px">
+                    <h2 style="margin:0 0 6px;">Inflation</h2>
+                    <div class="fine">See how the purchasing power of your money changes over time.</div>
+
+                    <div class="grid">
+                        <label>
+                            Current amount ($)
+                            <input id="i_amount" type="number" inputmode="decimal" step="0.01"
+                                placeholder="e.g. 1000" />
+                        </label>
+                        <label>
+                            Avg inflation rate (%)
+                            <input id="i_rate" type="number" inputmode="decimal" step="0.01" placeholder="e.g. 3" />
+                        </label>
+                        <label>
+                            Time
+                            <input id="i_time" type="number" inputmode="numeric" step="1" placeholder="e.g. 10" />
+                        </label>
+                        <label>
+                            Unit
+                            <select id="i_unit">
+                                <option value="years">Years</option>
+                                <option value="months">Months</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="row" style="margin-top:14px">
+                        <button class="btn primary" type="button" id="i_calc">Calculate</button>
+                    </div>
+
+                    <div class="outputs">
+                        <div class="stat"><b>Future Cost</b><span id="i_future">$0</span></div>
+                        <div class="stat"><b>Today's Value</b><span id="i_today">$0</span></div>
+                        <div class="stat"><b>Total Purchasing Power Loss</b><span id="i_loss">0%</span></div>
+                    </div>
+
+                    <details class="explain">
+                        <summary>How this is calculated</summary>
+                        <div class="fine">
+                            Inflation compoundly increases prices. "Future Cost" is what you'd need then to buy what $X
+                            buys
+                            today. "Today's Value" is what your $X today will effectively buy then.
+                            <div class="step">
+                                <b>Formula:</b> FV = PV × (1 + r)^n
+                            </div>
+                            <div class="step">
+                                <b>Example:</b> At 3% inflation, $100 today buys what $103 will buy in one year.
+                            </div>
+                        </div>
+                    </details>
+                    <div class="disclaimer">
+                        <b>Disclaimer:</b> Inflation calculations are based on the historical concept of purchasing
+                        power.
+                        Actual future inflation rates are unpredictable. Not financial advice.
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <footer>
+            <div class="data-manage">
+                <button class="btn ghost small" type="button" id="clearData">Delete All Stored Data</button>
+                <div class="fine" style="max-width: 600px;">
+                    <b>Data Info:</b> By default, inputs are kept only in this browser tab.
+                    Enabling "Remember on this device" (at the top) saves your progress to your browser's local storage
+                    so you can return later.
+                    "Delete All" wipes both session and permanent data from your device.
+                </div>
+            </div>
+            <p>PathWise provides educational tools based on mathematical formulas and user-provided data. All results
+                should be treated as hypothetical estimates, not official financial determinants or guarantees of future
+                performance. We do not provide financial, tax, or legal advice.</p>
+        </footer>
+    </div>
+
+</body>
+
+</html>

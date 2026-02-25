@@ -1,0 +1,565 @@
+/* =========================
+   Pathwise — Colors live here
+   Selectors keep same structure, but use variables
+   ========================= */
+
+/* 1) Actual color values live ONLY here */
+:root {
+
+    /* Deep finance background */
+    --bg: #0B1420;
+
+    /* Surfaces */
+    --surface: #0F1C2D;
+    --card: #142235;
+    --card-2: #1A2B40;
+
+    /* Text */
+    --text: #E6EDF5;
+    --muted: #8FA3B8;
+
+    /* Borders */
+    --border: rgba(255, 255, 255, 0.06);
+
+    /* Primary finance navy */
+    --primary: #1E3A5F;
+    --primary-hover: #244A78;
+
+    /* Accent (subtle money tone) */
+    --gold: #B59B6A;
+
+    /* Inputs */
+    --input-bg: #0F1C2D;
+    --input-focus-border: #2E5B8C;
+    --input-focus-ring: rgba(46, 91, 140, 0.25);
+
+    /* Buttons */
+    --btn-bg: #1A2B40;
+    --btn-active-bg: rgba(46, 91, 140, 0.20);
+
+    /* Stats */
+    --stat-bg: #18293D;
+
+    /* Warning */
+    --warn: #D97706;
+
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+
+    --radius: 14px;
+}
+
+/* 2) Everything below keeps your SAME structure, but no literal colors */
+
+* {
+    box-sizing: border-box
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+
+    background:
+        radial-gradient(circle at 10% 10%, color-mix(in srgb, var(--gold) 18%, transparent), transparent 35%),
+        radial-gradient(circle at 90% 30%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 40%),
+        var(--bg);
+
+    color: var(--text);
+}
+
+.wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 22px
+}
+
+header {
+    position: sticky;
+    top: 0;
+    backdrop-filter: blur(10px);
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--border);
+    z-index: 10;
+}
+
+.head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 16px 22px;
+    max-width: 980px;
+    margin: 0 auto;
+}
+
+h1 {
+    margin: 0;
+    font-size: 1.2rem;
+    letter-spacing: .2px
+}
+
+.sub {
+    margin: 2px 0 0;
+    color: var(--muted);
+    font-size: .92rem
+}
+
+.row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center
+}
+
+.toggle {
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--card-2);
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--primary) 12%, transparent);
+    color: var(--muted);
+    font-size: .92rem;
+}
+
+.toggle input {
+    transform: scale(1.1)
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px;
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 16px 0
+}
+
+.btn {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: var(--btn-bg);
+    padding: 10px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--text);
+    transition: transform .12s ease, background .12s ease, border-color .12s ease;
+    font-weight: 600;
+    font-size: .95rem;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    border-color: var(--btn-hover-border);
+}
+
+.btn.primary {
+    background: var(--primary);
+    border-color: color-mix(in srgb, var(--primary) 45%, transparent);
+    color: #fff;
+}
+
+.btn.ghost {
+    background: transparent;
+}
+
+.btn.active {
+    background: var(--btn-active-bg);
+    border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin-top: 12px;
+}
+
+label {
+    display: block;
+    font-weight: 700;
+    font-size: .95rem
+}
+
+.hint {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted);
+    font-weight: 500;
+    font-size: .85rem
+}
+
+input {
+    width: 100%;
+    margin-top: 8px;
+    padding: 12px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    outline: none;
+    font-size: 1rem;
+    color: var(--text);
+}
+
+input:focus {
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 0 4px var(--input-focus-ring);
+}
+
+.outputs {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin-top: 14px;
+}
+
+.stat {
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--stat-bg);
+}
+
+.stat b {
+    display: block;
+    font-size: .86rem;
+    color: var(--muted);
+    margin-bottom: 6px
+}
+
+.stat span {
+    font-size: 1.1rem;
+    font-weight: 800
+}
+
+/* HERE is the exact thing you asked for */
+.warn {
+    color: var(--warn);
+}
+
+.fine {
+    color: var(--muted);
+    font-size: .92rem;
+    margin-top: 10px;
+    line-height: 1.4
+}
+
+footer {
+    color: var(--muted);
+    font-size: .88rem;
+    margin: 18px 0 30px
+}
+
+/* ===== Toggle pill polish ===== */
+.toggle {
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+
+}
+
+.toggle:hover {
+    border-color: rgba(46, 91, 140, 0.35);
+}
+
+/* ===== Make checkbox not ugly ===== */
+.toggle input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(15, 28, 45, 0.70);
+    display: inline-grid;
+    place-items: center;
+    cursor: pointer;
+    transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.toggle input[type="checkbox"]:hover {
+    border-color: rgba(46, 91, 140, 0.55);
+}
+
+.toggle input[type="checkbox"]:checked {
+    background: rgba(46, 91, 140, 0.90);
+    border-color: rgba(46, 91, 140, 0.90);
+}
+
+.toggle input[type="checkbox"]::after {
+    content: "";
+    width: 9px;
+    height: 5px;
+    border-left: 2px solid rgba(255, 255, 255, 0.95);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.95);
+    transform: rotate(-45deg) scale(0);
+    transform-origin: center;
+    transition: transform 120ms ease;
+}
+
+.toggle input[type="checkbox"]:checked::after {
+    transform: rotate(-45deg) scale(1);
+}
+
+/* keyboard focus */
+.toggle input[type="checkbox"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46, 91, 140, 0.25);
+}
+
+/* ===== Explain Panel ===== */
+details.explain {
+    margin-top: 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+details.explain summary {
+    padding: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--gold);
+    transition: background 0.2s;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+details.explain summary:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+details.explain .fine {
+    padding: 0 12px 12px 12px;
+    margin-top: 0;
+}
+
+details.explain .step {
+    border-left: 2px solid var(--gold);
+    padding-left: 12px;
+    margin: 8px 0;
+    font-size: 0.88rem;
+}
+
+/* ===== Mission Card ===== */
+.mission-card {
+    margin-bottom: 20px;
+    border-left: 4px solid var(--gold);
+}
+
+.mission-card p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text);
+}
+
+/* ===== Chart Container ===== */
+.chart-container {
+    margin-top: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 10px;
+    min-height: 200px;
+}
+
+/* ===== Small Helpers ===== */
+.impact {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-right: 8px;
+    line-height: 1.2;
+    vertical-align: middle;
+}
+
+.impact.high {
+    background: rgba(220, 38, 38, 0.2);
+    color: #fca5a5;
+    border: 1px solid rgba(220, 38, 38, 0.4);
+}
+
+.impact.med {
+    background: rgba(217, 119, 6, 0.2);
+    color: #fcd34d;
+    border: 1px solid rgba(217, 119, 6, 0.4);
+}
+
+.impact.low {
+    background: rgba(5, 150, 105, 0.2);
+    color: #6ee7b7;
+    border: 1px solid rgba(5, 150, 105, 0.4);
+}
+
+.select-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.select-row label {
+    flex: 1;
+}
+
+select {
+    width: 100%;
+    margin-top: 8px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    outline: none;
+    font-size: 1rem;
+    color: var(--text);
+    cursor: pointer;
+}
+
+select:focus {
+    border-color: var(--input-focus-border);
+}
+
+@media (max-width: 600px) {
+    .head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+/* ===== Data Table ===== */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--text);
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.data-table th, .data-table td {
+    padding: 10px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+}
+
+.data-table th:first-child, .data-table td:first-child {
+    text-align: left;
+}
+
+.data-table th {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--gold);
+    font-weight: 600;
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* ===== Disclaimer ===== */
+.disclaimer {
+    margin-top: 20px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border-left: 3px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: var(--text-dim);
+}
+
+.disclaimer b {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.btn.ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+}
+
+.btn.ghost:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+}
+
+/* ===== Sidebar Layout ===== */
+.main-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.sidebar {
+    flex: 0 0 280px;
+    position: sticky;
+    top: 100px;
+}
+
+#pathwise-form {
+    flex: 1;
+}
+
+.learn-card {
+    background: linear-gradient(135deg, var(--card-2), var(--card));
+    border-left: 2px solid var(--gold);
+}
+
+.learn-card h3 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+    color: var(--gold);
+}
+
+.learn-card p {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text);
+    margin: 0;
+}
+
+@media (max-width: 900px) {
+    .main-layout {
+        flex-direction: column;
+    }
+    .sidebar {
+        flex: none;
+        width: 100%;
+        position: static;
+        margin-bottom: 20px;
+    }
+}
+
+/* ===== Footer Data Manage ===== */
+.data-manage {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    text-align: center;
+}
+
+.btn.small {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+}
+
