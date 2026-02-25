@@ -51,6 +51,7 @@
             <button class="btn" type="button" data-tab="loan" id="tabBtnLoan">Loan Payment</button>
             <button class="btn" type="button" data-tab="goal" id="tabBtnGoal">Savings Goal</button>
             <button class="btn" type="button" data-tab="inflation" id="tabBtnInflation">Inflation</button>
+            <button class="btn" type="button" data-tab="salarytax" id="tabBtnSalaryTax">Salary Taxes</button>
         </div>
 
         <div class="main-layout">
@@ -524,6 +525,95 @@
                         <b>Disclaimer:</b> Inflation calculations are based on the historical concept of purchasing
                         power.
                         Actual future inflation rates are unpredictable. Not financial advice.
+                    </div>
+                </section>
+
+                <!-- Salary Taxes -->
+                <section class="card hidden mt-16" id="tab-salarytax">
+                    <h2 class="mb-6 m-0">Salary Taxes</h2>
+                    <div class="fine">Tax breakdown for 2022. Supports multi-state and combined income
+                        trajectories.</div>
+
+                    <div id="t_income_list">
+                        <!-- Dynamic rows will be here -->
+                    </div>
+
+                    <div class="row mt-14" style="justify-content: space-between;">
+                        <button class="btn ghost" type="button" id="t_add_income">+ Add Income Source</button>
+                        <button class="btn primary" type="button" id="t_calc">Recalculate Totals</button>
+                    </div>
+
+                    <div class="outputs mt-20" id="t_combined_totals" style="display: none;">
+                        <div class="stat bg-soft"><b>Total Gross (Annual)</b><span id="t_total_gross">$0</span></div>
+                        <div class="stat bg-soft"><b>Total Tax (Annual)</b><span id="t_total_tax">$0</span></div>
+                        <div class="stat bg-soft"><b>Total Net (Annual)</b><span id="t_total_net">$0</span></div>
+                        <div class="stat bg-soft"><b>Combined Avg Rate</b><span id="t_combined_avg">0%</span></div>
+                    </div>
+
+                    <div id="t_compare_container" class="mt-20" style="display:none; overflow-x:auto;">
+                        <h3 class="mb-10">Income Comparison</h3>
+                        <table class="data-table" id="t_compare_table">
+                            <thead>
+                                <tr>
+                                    <th>Source</th>
+                                    <th>State</th>
+                                    <th>Gross</th>
+                                    <th>Tax</th>
+                                    <th>Net</th>
+                                    <th>Avg Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody id="t_compare_body"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="t_taxberg_container" class="mt-20" style="display:none;">
+                        <h3 class="mb-10">The Taxberg (Combined)</h3>
+                        <div class="grid">
+                            <div class="stat"><b>Net Pay (Annual)</b><span id="t_tb_net">$0</span></div>
+                            <div class="stat"><b>Employee Tax</b><span id="t_tb_emp_tax">$0</span></div>
+                            <div class="stat"><b>Employer Tax</b><span id="t_tb_err_tax">$0</span></div>
+                            <div class="stat"><b>Total Real Tax</b><span id="t_tb_real_tax">$0</span></div>
+                            <div class="stat"><b>Real Tax Rate</b><span id="t_tb_real_rate">0%</span></div>
+                        </div>
+                    </div>
+
+                    <details class="explain mt-20">
+                        <summary>Financial Insights & Details</summary>
+                        <div class="fine">
+                            <b>State Income Tax Types:</b>
+                            <ul>
+                                <li><b>Flat Tax:</b> States like Illinois (4.95%) charge the same rate for everyone.
+                                </li>
+                                <li><b>Progressive Tax:</b> States like New York and California use brackets where high
+                                    earners pay higher percentages on their top dollars.</li>
+                                <li><b>No Income Tax:</b> Florida, Texas, Washington, and others don't tax your wages at
+                                    the state level.</li>
+                            </ul>
+                            <b>Payroll Programs:</b>
+                            <div class="step">
+                                <b>NY FLI & SDI:</b> New York requires Paid Family Leave and Disability Insurance
+                                contributions.
+                            </div>
+                            <div class="step">
+                                <b>CA SDI:</b> California State Disability Insurance is a mandatory deduction for most
+                                workers.
+                            </div>
+                            <b>Residency & Credits:</b>
+                            If you work in one state but live in another, you may owe taxes to both. Most states offer a
+                            "resident credit" to prevent double taxation, though this tool assumes you are taxed based
+                            on the state where you work.
+                            <br><br>
+                            <b>Local Taxes:</b> Cities like NYC or Philadelphia charge additional local income taxes
+                            which are not modeled in this simple tool.
+                        </div>
+                    </details>
+
+                    <div class="disclaimer">
+                        <b>Disclaimer:</b> These results are educated estimates based on the fact that it's off a
+                        specific year's tax rules (2022). The goal is to give a close enough guess, because the nuances
+                        of each state's taxes are so complicated that there might be some things the calculator doesn't
+                        account for. This is not legal or tax advice.
                     </div>
                 </section>
             </main>

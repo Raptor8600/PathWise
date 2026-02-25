@@ -18,6 +18,8 @@ PathWise includes several essential financial calculators to help you plan your 
 - **Loan Payment:** Estimate monthly payments and total costs for car, personal, or home loans.
 - **Savings Goal:** Determine exactly how much you need to save each month to reach your target.
 - **Inflation:** Visualize how the purchasing power of your money changes over time.
+- **Salary Taxes:** Calculate detailed tax withholdings for 2022. Supports multiple income sources across different states simultaneously (IL, NY, CA, and states with no income tax like TX/FL/WA) with aggregate totals and employer-cost "Taxberg" visualization.
+
 
 ---
 
