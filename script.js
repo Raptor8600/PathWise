@@ -717,6 +717,17 @@
 
         $$("[data-tab]").forEach(btn => btn.addEventListener("click", () => showTab(btn.dataset.tab)));
         $("#clearData")?.addEventListener("click", clearAll);
+
+        $("#g_toggle_table")?.addEventListener("click", () => {
+            const container = $("#g_table_container");
+            const btn = $("#g_toggle_table");
+            if (container && btn) {
+                const isHidden = container.style.display === "none";
+                container.style.display = isHidden ? "block" : "none";
+                btn.textContent = isHidden ? "Hide Table" : "Show Table";
+            }
+        });
+
         calcAll();
     });
 })();
