@@ -230,57 +230,118 @@
 
     const renderGrowthChart = (labels, baseHist, highHist, lowHist, rate, varPct) => {
         const canvas = $("#g_chart");
-        if (canvas && typeof Chart !== "undefined") {
-            const ctx = canvas.getContext("2d");
-            if (growthChart) growthChart.destroy();
+        if (!canvas || typeof Chart === "undefined") return;
 
-            const datasets = [];
-            if (highHist) {
-                datasets.push({
-                    label: `High (${(rate + varPct).toFixed(1)}%)`,
-                    data: highHist,
-                    borderColor: '#4ade80',
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    tension: 0.3
-                });
-            }
+        // Ensure instance is completely cleaned up
+        const existing = Chart.getChart(canvas);
+        if (existing) existing.destroy();
+
+        const datasets = [];
+        if (highHist) {
             datasets.push({
-                label: `Base (${rate}%)`,
-                data: baseHist,
-                borderColor: '#B59B6A',
-                backgroundColor: 'rgba(181, 155, 106, 0.1)',
-                fill: true,
-                borderWidth: 3,
+                label: `High (${(rate + varPct).toFixed(1)}%)`,
+                data: highHist,
+                borderColor: '#4ade80',
+                borderWidth: 2,
+                pointRadius: 2,
+                pointHoverRadius: 6,
+                pointHitRadius: 10,
                 tension: 0.3,
-                pointRadius: 2
-            });
-            if (lowHist) {
-                datasets.push({
-                    label: `Low (${(rate - varPct).toFixed(1)}%)`,
-                    data: lowHist,
-                    borderColor: '#f87171',
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    tension: 0.3
-                });
-            }
-
-            growthChart = new Chart(ctx, {
-                type: 'line',
-                data: { labels, datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { ticks: { color: '#8FA3B8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                        x: { ticks: { color: '#8FA3B8', font: { size: 10 } }, grid: { display: false } }
-                    }
-                }
+                spanGaps: true
             });
         }
-    }
+        datasets.push({
+            label: `Base (${rate.toFixed(1)}%)`,
+            data: baseHist,
+            borderColor: '#B59B6A',
+            backgroundColor: 'rgba(181, 155, 106, 0.1)',
+            fill: true,
+            borderWidth: 3,
+            tension: 0.3,
+            pointRadius: 4,
+            pointHoverRadius: 8,
+            spanGaps: true
+        });
+        if (lowHist) {
+            datasets.push({
+                label: `Low (${(rate - varPct).toFixed(1)}%)`,
+                data: lowHist,
+                borderColor: '#f87171',
+                borderWidth: 2,
+                pointRadius: 2,
+                pointHoverRadius: 6,
+                pointHitRadius: 10,
+                tension: 0.3,
+                spanGaps: true
+            });
+        }
+
+        new Chart(canvas, {
+            type: 'line',
+            data: { labels, datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                    axis: 'x'
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(11, 20, 32, 0.95)',
+                        titleColor: '#B59B6A',
+                        bodyColor: '#E6EDF5',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function (context) {
+                                const label = context.dataset.label || '';
+                                const val = context.raw;
+                                if (val === null || val === undefined) return label;
+
+                                let out = label + ': ' + fmtMoney(val);
+
+                                try {
+                                    const datasets = context.chart.data.datasets;
+                                    const baseDs = datasets.find(d => d.label && d.label.indexOf('Base') !== -1);
+                                    if (baseDs && context.dataset !== baseDs) {
+                                        const baseVal = baseDs.data[context.dataIndex];
+                                        if (baseVal !== undefined) {
+                                            const diff = val - baseVal;
+                                            if (Math.abs(diff) > 0.01) {
+                                                const sign = diff > 0 ? '+' : '';
+                                                out += ' (' + sign + fmtMoney(diff) + ')';
+                                            }
+                                        }
+                                    }
+                                } catch (e) { }
+                                return out;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: {
+                            color: '#94a3b8',
+                            callback: value => '$' + (value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value)
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    };
 
     const calcDebt = () => {
         const bal0 = Math.max(0, parseNum($("#d_balance")?.value));
@@ -456,14 +517,11 @@
     };
 
     const clearAll = () => {
+        if (!confirm("Are you sure you want to delete all stored data? This will clear all inputs and stored preferences.")) return;
         sessionStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(STORAGE_KEY);
-        for (const el of getFields()) {
-            if (el instanceof HTMLInputElement && el.type === "checkbox") el.checked = false;
-            else el.value = "";
-        }
-        $$(".outputs span").forEach(s => s.textContent = s.id.includes("rate") || s.id.includes("loss") || s.id.includes("zone") || s.id.includes("time") || s.id.includes("goal") ? "—" : "$0");
-        calcAll();
+        localStorage.removeItem(PREF_KEY);
+        location.reload();
     };
 
     const calcAll = () => {
